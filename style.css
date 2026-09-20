@@ -161,7 +161,7 @@ nav {
     }
 
     .nav-links.active li {
-        opacity: 1;
+        opacity: 1;   
         transform: translateY(0);
     }
 
@@ -175,4 +175,24 @@ nav {
     .nav-links li:nth-child(3) {
         transition-delay: 0.3s;
     }
+}
+
+
+/*mapita*/
+#mapa3d {
+    width: 100%;
+    height: calc(100vh - 74px);
+}
+
+/*icono luna*/
+.nav-icon-link svg {
+    width: 22px;
+    height: 22px;
+    fill: currentColor;
+    display: block;
+    transition: opacity 0.2s;
+}
+
+.nav-icon-link:hover svg {
+    opacity: 0.8;
 }
