@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { EXRLoader } from 'three/addons/loaders/EXRLoader.js'; /*pa meter el fondo*/ 
 
 
 // creamos  zona donde estara el mapa
@@ -9,10 +10,9 @@ const mapa = document.getElementById('mapa3d');
 // mensaje de prueba
 console.log("jalando chido");
 
-
-// fondo
+// escena
 const escena = new THREE.Scene();
-escena.background = new THREE.Color(0xFFFFFF);
+//escena.background = new THREE.Color(0xFFFFFF);
 
 
 // posicion de la camara
@@ -44,13 +44,31 @@ controles.enableDamping = true;
 
 
 // luz
-const luz = new THREE.HemisphereLight(
-    0xffffff,
-    0x444444,
-    2
-);
-escena.add(luz);
+// const luz = new THREE.HemisphereLight(
+//     0x000000,
+//     0x000000,
+//     0
+// );
+// escena.add(luz);
 
+
+//fondito
+const fondito = new THREE.PMREMGenerator(renderizador);
+fondito.compileEquirectangularShader();
+ 
+new EXRLoader().load(
+    'assets/hdri/citrus_orchard_road_puresky_2k.exr', 
+    (hdri) => {
+        hdri.mapping = THREE.EquirectangularReflectionMapping;
+        const envMap = fondito.fromEquirectangular(hdri).texture;
+        escena.background = envMap;   // fondo
+        escena.environment = envMap;  //  para que  refleje
+        escena.environmentIntensity = 0.7; // intensidad de la luz ambiental
+ 
+        hdri.dispose();
+        fondito.dispose();
+    }
+);
 
 // Cargar modelo 3D
 const cargarmapa = new GLTFLoader();
