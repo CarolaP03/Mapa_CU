@@ -139,7 +139,7 @@ nav {
 
     .nav-links {
         position: fixed;
-        top: 60px;
+        top: 73px;
         left: 0;
         width: 100%;
         background-color: #114C91;
@@ -196,3 +196,26 @@ nav {
 .nav-icon-link:hover svg {
     opacity: 0.8;
 }
+
+/*modo oscuro*/
+body.modo-oscuro nav {
+    background-color: #000000;
+}
+body.modo-oscuro .nav-links  {
+    background-color: #000000;
+}
+body.modo-oscuro .menu-btn {
+    background-color: #000000;
+}
+body.modo-oscuro .search-container {
+    background-color: #000000;
+    border-color: #ffffff;
+}
+body.modo-oscuro .search-container input {
+    color: #ffffff;
+}
+body.modo-oscuro .search-container button:hover {
+    background-color: #ffffff;
+    color: #000000;
+}
+

@@ -1,3 +1,4 @@
+/*barra de navegacion*/  
 /*aignamos variables*/ 
 const menuBtn = document.querySelector('.menu-btn');
 const navlinks = document.querySelector('.nav-links');
@@ -26,4 +27,12 @@ links.forEach(link => {
         menuBtn.innerHTML = "☰";
         menuBtn.setAttribute("aria-expanded", "false");
     })
+});
+
+/*imodo oscuro*/
+const botonluna = document.getElementById('botonluna');
+botonluna.addEventListener('click', () => {
+    document.body.classList.toggle('modo-oscuro');
+    if (document.body.classList.contains('modo-oscuro')) {
+    }
 });
