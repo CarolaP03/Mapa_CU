@@ -1,3 +1,4 @@
+// CODIGO RELACIONADO A LA NAVBAR
 /*barra de navegacion*/  
 /*aignamos variables*/ 
 const menuBtn = document.querySelector('.menu-btn');
