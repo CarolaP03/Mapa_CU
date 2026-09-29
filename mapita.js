@@ -5,6 +5,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { EXRLoader } from 'three/addons/loaders/EXRLoader.js'; /*pa meter el fondo*/ 
 
+//ESCENARIO 
 
 // creamos  zona donde estara el mapa
 const mapa = document.getElementById('mapa3d');
@@ -40,6 +41,37 @@ mapa.appendChild(renderizador.domElement);
 
 
 
+
+/*ajustar tamaño y que no se corte*/
+window.addEventListener('resize', () => {
+    camara.aspect = mapa.clientWidth / mapa.clientHeight;
+    camara.updateProjectionMatrix();
+    renderizador.setSize(mapa.clientWidth, mapa.clientHeight);
+});
+
+//fondito
+const fondito = new THREE.PMREMGenerator(renderizador);
+fondito.compileEquirectangularShader();
+ 
+new EXRLoader().load(
+    'assets/hdri/citrus_orchard_road_puresky_2k.exr', 
+    (hdri) => {
+        hdri.mapping = THREE.EquirectangularReflectionMapping;
+        const envMap = fondito.fromEquirectangular(hdri).texture;
+        escena.background = envMap;   // fondo
+        escena.environment = envMap;  //  para que  refleje
+        escena.environmentIntensity = 0.7; // intensidad de la luz ambiental
+ 
+         hdri.dispose();
+        fondito.dispose();
+    }
+)
+
+
+
+//FUNCINOALIDADES DEL MAPA
+
+
 //controles del mapa
 const controles = new OrbitControls(camara, renderizador.domElement);
 controles.enableDamping = true;
@@ -63,23 +95,7 @@ controles.addEventListener('change', () => {
 });
  
 
-//fondito
-const fondito = new THREE.PMREMGenerator(renderizador);
-fondito.compileEquirectangularShader();
- 
-new EXRLoader().load(
-    'assets/hdri/citrus_orchard_road_puresky_2k.exr', 
-    (hdri) => {
-        hdri.mapping = THREE.EquirectangularReflectionMapping;
-        const envMap = fondito.fromEquirectangular(hdri).texture;
-        escena.background = envMap;   // fondo
-        escena.environment = envMap;  //  para que  refleje
-        escena.environmentIntensity = 0.7; // intensidad de la luz ambiental
- 
-         hdri.dispose();
-        fondito.dispose();
-    }
-);
+
 
 // cargar modelo 3D
 // guardamos el modelo cargado y el grupo de edificios para poder detectar clicks
@@ -118,6 +134,7 @@ const edificios = [
     'Nucleo',
     'Gimanasio_multifincional_UACJ_CU002', // edifico e
 ];
+
  
 //identifica donde realizamos click
 renderizador.domElement.addEventListener('click', (evento) => {
@@ -125,7 +142,7 @@ renderizador.domElement.addEventListener('click', (evento) => {
     const posicionCanvas =  renderizador.domElement.getBoundingClientRect(); //funcion del navegador, identifica donde empieza 
  
     coordenada.x = ((evento.clientX - posicionCanvas.left) / posicionCanvas.width) * 2 - 1;  //coordenada horizontal con formula
-    coordenada.y = -((evSento.clientY - posicionCanvas.top) / posicionCanvas.height) * 2 + 1;  //coordenada vertical  con formula
+    coordenada.y = -((evento.clientY - posicionCanvas.top) / posicionCanvas.height) * 2 + 1;  //coordenada vertical  con formula
  
     //identifica a quien le dimos click y desde donde 
     puntero.setFromCamera(coordenada,camara);
@@ -142,15 +159,44 @@ renderizador.domElement.addEventListener('click', (evento) => {
     // solo reaccionamos si el nombre base esta en nuestra lista permitida
     if (!edificios.includes(base)) return;
     console.log("Clic en:", base);
+
+    //identificamos dimensiones
+    const cajaEdificio = new THREE.Box3().setFromObject(primer);
+    const centro = new THREE.Vector3();
+    cajaEdificio.getCenter(centro); //se obtienen coordenadas centrales
+    
+    const techo = cajaEdificio.max.y; // obtenemos el punto mas alto del edificio
+
+    //posicionamos
+    marcador.position.x = centro.x;
+    // lo subimos para darle le efecto 
+    marcador.position.y = techo + 10; 
+    marcador.position.z = centro.z;
+
+    // 3. Lo hacemos visible
+    marcador.visible = true;
+
 });
 
 
-/*ajustar tamaño y que no se corte*/
-window.addEventListener('resize', () => {
-    camara.aspect = mapa.clientWidth / mapa.clientHeight;
-    camara.updateProjectionMatrix();
-    renderizador.setSize(mapa.clientWidth, mapa.clientHeight);
+//cargamos el marcador (identificador)
+const cargar_textura = new THREE.TextureLoader();
+const textura = cargar_textura.load('assets/iconos/marcador.png'); 
+
+const material = new THREE.SpriteMaterial({ 
+    map: textura, //visualiza el marcador
+    depthTest: false // pa que se vea detras de objetos
 });
+
+const marcador = new THREE.Sprite(material);
+// tamaño del marcador
+marcador.scale.set(15, 15, 1); 
+marcador.visible = false; // se oculta al inicio
+
+escena.add(marcador);
+
+
+
 
 // animacion
 function animar() {
