@@ -5,29 +5,26 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { EXRLoader } from 'three/addons/loaders/EXRLoader.js'; /*pa meter el fondo*/ 
 
-//ESCENARIO 
-
 // creamos  zona donde estara el mapa
 const mapa = document.getElementById('mapa3d');
 
+// variable añadida para poder mostrar/ocultar los botones desde este archivo
+const menuNiveles = document.getElementById('menu-niveles');
 
 // mensaje de prueba
 console.log("jalando chido");
-
 
 // escena
 const escena = new THREE.Scene();
 //escena.background = new THREE.Color(0xFFFFFF);
 
-
 // posicion de la camara
 const camara = new THREE.PerspectiveCamera(
-60,
-mapa.clientWidth / mapa.clientHeight,
-    0.1,1000
+    60,
+    mapa.clientWidth / mapa.clientHeight,
+    0.1, 1000
 );
 camara.position.set(0, 100, 200);
-
 
 // renderizador
 const renderizador = new THREE.WebGLRenderer({
@@ -38,39 +35,6 @@ renderizador.setSize(
     mapa.clientHeight
 );
 mapa.appendChild(renderizador.domElement);
-
-
-
-
-/*ajustar tamaño y que no se corte*/
-window.addEventListener('resize', () => {
-    camara.aspect = mapa.clientWidth / mapa.clientHeight;
-    camara.updateProjectionMatrix();
-    renderizador.setSize(mapa.clientWidth, mapa.clientHeight);
-});
-
-//fondito
-const fondito = new THREE.PMREMGenerator(renderizador);
-fondito.compileEquirectangularShader();
- 
-new EXRLoader().load(
-    'assets/hdri/citrus_orchard_road_puresky_2k.exr', 
-    (hdri) => {
-        hdri.mapping = THREE.EquirectangularReflectionMapping;
-        const envMap = fondito.fromEquirectangular(hdri).texture;
-        escena.background = envMap;   // fondo
-        escena.environment = envMap;  //  para que  refleje
-        escena.environmentIntensity = 0.7; // intensidad de la luz ambiental
- 
-         hdri.dispose();
-        fondito.dispose();
-    }
-)
-
-
-
-//FUNCINOALIDADES DEL MAPA
-
 
 //controles del mapa
 const controles = new OrbitControls(camara, renderizador.domElement);
@@ -94,8 +58,23 @@ controles.addEventListener('change', () => {
     controles.target.z = THREE.MathUtils.clamp(controles.target.z, -limite, limite);
 });
  
-
-
+//fondito
+const fondito = new THREE.PMREMGenerator(renderizador);
+fondito.compileEquirectangularShader();
+ 
+new EXRLoader().load(
+    'assets/hdri/citrus_orchard_road_puresky_2k.exr', 
+    (hdri) => {
+        hdri.mapping = THREE.EquirectangularReflectionMapping;
+        const envMap = fondito.fromEquirectangular(hdri).texture;
+        escena.background = envMap;   // fondo
+        escena.environment = envMap;  //  para que  refleje
+        escena.environmentIntensity = 0.7; // intensidad de la luz ambiental
+ 
+        hdri.dispose();
+        fondito.dispose();
+    }
+);
 
 // cargar modelo 3D
 // guardamos el modelo cargado y el grupo de edificios para poder detectar clicks
@@ -111,7 +90,6 @@ cargarmapa.load(
         grupoEdificios = modeloCargado.getObjectByName('maposm_buildings');
     },
 );
-
 
 /*detectar click*/
 const puntero = new THREE.Raycaster(); //identificar hacia donde apuntamos
@@ -134,7 +112,6 @@ const edificios = [
     'Nucleo',
     'Gimanasio_multifincional_UACJ_CU002', // edifico e
 ];
-
  
 //identifica donde realizamos click
 renderizador.domElement.addEventListener('click', (evento) => {
@@ -146,18 +123,28 @@ renderizador.domElement.addEventListener('click', (evento) => {
  
     //identifica a quien le dimos click y desde donde 
     puntero.setFromCamera(coordenada,camara);
+    
+    //con esto evitamos errores si el modelo no se ha cargado
+    if (!grupoEdificios) return;
  
     //revisa si apunta a uno de los edifcios
     const intersecciones = puntero.intersectObjects(grupoEdificios.children, true);
-    if (intersecciones.length === 0) return;
+    if (intersecciones.length === 0) {
+        marcador.visible = false; //ocultamos marcador
+        menuNiveles.classList.add('oculto'); //ocultamos botones
+        return;
+    }
  
     //en caso de que si, solo dame el primer objeto que detectaste
     const primer = intersecciones[0].object;
-
-
     const base = nombreBase(primer.name);
     // solo reaccionamos si el nombre base esta en nuestra lista permitida
-    if (!edificios.includes(base)) return;
+    if (!edificios.includes(base)) {
+        marcador.visible = false;
+        menuNiveles.classList.add('oculto');
+        return;
+    }
+
     console.log("Clic en:", base);
 
     //identificamos dimensiones
@@ -173,11 +160,15 @@ renderizador.domElement.addEventListener('click', (evento) => {
     marcador.position.y = techo + 10; 
     marcador.position.z = centro.z;
 
-    // 3. Lo hacemos visible
+    //lo hacemos visible
     marcador.visible = true;
 
-});
+    //guardamos de manera invisible el edificio que seleccionamos
+    menuNiveles.dataset.edificio = base;
 
+    //mostrar botones
+    menuNiveles.classList.remove('oculto');
+});
 
 //cargamos el marcador (identificador)
 const cargar_textura = new THREE.TextureLoader();
@@ -194,9 +185,6 @@ marcador.scale.set(15, 15, 1);
 marcador.visible = false; // se oculta al inicio
 
 escena.add(marcador);
-
-
-
 
 // animacion
 function animar() {

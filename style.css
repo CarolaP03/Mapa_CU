@@ -53,26 +53,20 @@ nav {
     cursor: pointer;
 }
 
-
 /*barra de busqueda*/
 .search-container {
     display: flex;
     align-items: center;
-
     width: clamp(180px, 25vw, 320px);
     height: 42px;
     flex-shrink: 0;
     background-color: #ffffff;
     border: 2px solid transparent;
     border-radius: 25px;
-
     overflow: hidden;
-
     box-shadow: 0 3px 8px rgba(0, 0, 0, 0.18);
-
     transition: all 0.3s ease;
 }
-
 
 /* efecto seleccionar la barra */
 .search-container:focus-within {
@@ -148,12 +142,13 @@ nav {
         padding: 1rem 0;
         clip-path: circle(0px at 90% -10%);
         pointer-events: none;
-
     }
+    
     .nav-links.active {
         clip-path: circle(1000% at 90% -10%);
         pointer-events: all;
     }
+    
     .nav-links li {
         opacity: 0;
         transform: translateY(20px);
@@ -166,17 +161,10 @@ nav {
     }
 
     /*efecto escalonado*/
-    .nav-links li:nth-child(1) {
-        transition-delay: 0.1s;
-    }
-    .nav-links li:nth-child(2) {
-        transition-delay: 0.2s;
-    }
-    .nav-links li:nth-child(3) {
-        transition-delay: 0.3s;
-    }
+    .nav-links li:nth-child(1) { transition-delay: 0.1s; }
+    .nav-links li:nth-child(2) { transition-delay: 0.2s; }
+    .nav-links li:nth-child(3) { transition-delay: 0.3s; }
 }
-
 
 /*mapita*/
 #mapa3d {
@@ -196,8 +184,6 @@ nav {
 .nav-icon-link:hover svg {
     opacity: 0.8;
 }
-
-
 
 /*modo oscuro*/
 body.modo-oscuro nav {
@@ -219,5 +205,116 @@ body.modo-oscuro .search-container input {
 body.modo-oscuro .search-container button:hover {
     background-color: #ffffff;
     color: #000000;
+}
+/*modo oscuro botones planos*/
+body.modo-oscuro .piso {
+    background-color: #000000;
+}
+body.modo-oscuro .piso:hover {
+    background-color: #333333; 
+}
+/* modo oscuro para el fondo del visor */
+body.modo-oscuro #visor-planos {
+    background-color: #1a1a1a;
+}
+
+
+
+
+/*botones niveles*/
+#menu-niveles {
+    position: absolute;
+    bottom: 30px; /* espacio de abajo*/
+    left: 50%;
+    transform: translateX(-50%); /*centrar contenedor */
+    display: flex;
+    gap: 15px; /* espacio */
+    z-index: 10; /* asegura que se dibuje por encima del canvas */
+    transition: opacity 0.3s ease; /*animacion*/
+}
+
+/* se ocultan cuando no hay edficios seleccionados */
+.oculto {
+    opacity: 0;
+    pointer-events: none; /* no clikeables */
+}
+
+.piso {
+    padding: 12px 24px;
+    background-color: #003b5c; 
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 16px;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    transition: background-color 0.2s;
+}
+
+.piso:hover {
+    background-color: #005688; 
+}
+
+
+/*visor d elos planos */
+#visor-planos {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: #ffffff;
+    z-index: 200; /*el mapa  de dibuja en toda la pantalla*/
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: opacity 0.3s ease;
+    overflow: hidden; /* evita que salgan barras feas */
+}
+
+#visor-planos.oculto {
+    opacity: 0;
+    pointer-events: none;
+}
+
+#contenedor-svg {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: grab; /* cursor de mano */
+}
+
+#contenedor-svg:active {
+    cursor: grabbing; /* cursor de mano en desplazamiento */
+}
+
+#contenedor-svg svg {
+    max-width: 90%;
+    max-height: 90%;
+    /* con esto podemos clickear los iconos de los planos */
+    pointer-events: all; 
+}
+
+#btn-cerrar-plano {
+    position: absolute;
+    top: 20px;
+    right: 30px;
+    z-index: 210;
+    background-color: #cc0000;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 16px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+}
+
+#btn-cerrar-plano:hover {
+    background-color: #a00000;
 }
 
