@@ -218,7 +218,17 @@ body.modo-oscuro #visor-planos {
     background-color: #1a1a1a;
 }
 
-
+/*modo oscuro ventana de info iconos*/
+body.modo-oscuro .ventana-contenido {
+    background-color: #1e1e1e;
+    color: #ffffff;
+}
+body.modo-oscuro #ventana-titulo {
+    color: #8bb8e8;
+}
+body.modo-oscuro #ventana-descripcion {
+    color: #cccccc;
+}
 
 
 /*botones niveles*/
@@ -318,3 +328,84 @@ body.modo-oscuro #visor-planos {
     background-color: #a00000;
 }
 
+
+/*ventana de informacion de los iconos*/
+.ventana-oculta {
+    display: none; /* oculto por defecto */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.6); /* fondo oscuro semitransparente */
+    z-index: 300; /* por encima de todo, incluso del visor SVG */
+    justify-content: center;
+    align-items: center;
+}
+
+.ventana-contenido {
+    background-color: #ffffff;
+    width: 90%;
+    max-width: 500px;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    animation: escalarVentana 0.3s ease;
+}
+
+@keyframes escalarVentana {
+    from { transform: scale(0.8); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+#ventana-titulo {
+    color: #114C91;
+    font-size: 1.4rem;
+}
+
+.ventana-body {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+#ventana-imagen {
+    width: 100%;
+    max-height: 250px;
+    object-fit: cover;
+    border-radius: 8px;
+    background-color: #f0f0f0;
+}
+
+#ventana-descripcion {
+    color: #333333;
+    font-size: 1rem;
+    line-height: 1.5;
+}
+
+#btn-cerrar-ventana {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    color: #666;
+}
+
+#btn-cerrar-ventana:hover {
+    color: #000;
+}
+
+/* forzar que cualquier trazo o forma rellena dentro del SVG detecte el puntero en su totalidad */
+#contenedor-svg svg path, 
+#contenedor-svg svg rect, 
+#contenedor-svg svg circle, 
+#contenedor-svg svg g {
+    pointer-events: visiblePainted;
+}

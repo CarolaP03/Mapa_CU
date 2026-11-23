@@ -8,15 +8,14 @@ import { EXRLoader } from 'three/addons/loaders/EXRLoader.js'; /*pa meter el fon
 // creamos  zona donde estara el mapa
 const mapa = document.getElementById('mapa3d');
 
-// variable añadida para poder mostrar/ocultar los botones desde este archivo
-const menuNiveles = document.getElementById('menu-niveles');
-
 // mensaje de prueba
 console.log("jalando chido");
 
+
+
+
 // escena
 const escena = new THREE.Scene();
-//escena.background = new THREE.Color(0xFFFFFF);
 
 // posicion de la camara
 const camara = new THREE.PerspectiveCamera(
@@ -25,6 +24,9 @@ const camara = new THREE.PerspectiveCamera(
     0.1, 1000
 );
 camara.position.set(0, 100, 200);
+
+
+
 
 // renderizador
 const renderizador = new THREE.WebGLRenderer({
@@ -35,6 +37,8 @@ renderizador.setSize(
     mapa.clientHeight
 );
 mapa.appendChild(renderizador.domElement);
+
+
 
 //controles del mapa
 const controles = new OrbitControls(camara, renderizador.domElement);
@@ -57,6 +61,10 @@ controles.addEventListener('change', () => {
     controles.target.y = THREE.MathUtils.clamp(controles.target.y, 0, 0);
     controles.target.z = THREE.MathUtils.clamp(controles.target.z, -limite, limite);
 });
+
+
+
+
  
 //fondito
 const fondito = new THREE.PMREMGenerator(renderizador);
@@ -68,7 +76,7 @@ new EXRLoader().load(
         hdri.mapping = THREE.EquirectangularReflectionMapping;
         const envMap = fondito.fromEquirectangular(hdri).texture;
         escena.background = envMap;   // fondo
-        escena.environment = envMap;  //  para que  refleje
+        escena.environment = envMap;  // para que refleje
         escena.environmentIntensity = 0.7; // intensidad de la luz ambiental
  
         hdri.dispose();
@@ -76,8 +84,10 @@ new EXRLoader().load(
     }
 );
 
+
+
+
 // cargar modelo 3D
-// guardamos el modelo cargado y el grupo de edificios para poder detectar clicks
 let modeloCargado = null;
 let grupoEdificios = null;
 
@@ -91,11 +101,14 @@ cargarmapa.load(
     },
 );
 
+
+
+
 /*detectar click*/
-const puntero = new THREE.Raycaster(); //identificar hacia donde apuntamos
+const puntero = new THREE.Raycaster(); 
 const coordenada = new THREE.Vector2();
  
-//quita el numemro del final
+//quita el numero del final
 function nombreBase(nombre) {
     return nombre.replace(/_\d+$/, '');
 }
@@ -110,35 +123,30 @@ const edificios = [
     'Edificio_D3',
     'Edificio_D4',
     'Nucleo',
-    'Gimanasio_multifincional_UACJ_CU002', // edifico e
+    'Gimanasio_multifincional_UACJ_CU002', // edificio e
 ];
  
 //identifica donde realizamos click
 renderizador.domElement.addEventListener('click', (evento) => {
+    const posicionCanvas = renderizador.domElement.getBoundingClientRect(); 
  
-    const posicionCanvas =  renderizador.domElement.getBoundingClientRect(); //funcion del navegador, identifica donde empieza 
+    coordenada.x = ((evento.clientX - posicionCanvas.left) / posicionCanvas.width) * 2 - 1;  
+    coordenada.y = -((evento.clientY - posicionCanvas.top) / posicionCanvas.height) * 2 + 1;  
  
-    coordenada.x = ((evento.clientX - posicionCanvas.left) / posicionCanvas.width) * 2 - 1;  //coordenada horizontal con formula
-    coordenada.y = -((evento.clientY - posicionCanvas.top) / posicionCanvas.height) * 2 + 1;  //coordenada vertical  con formula
- 
-    //identifica a quien le dimos click y desde donde 
-    puntero.setFromCamera(coordenada,camara);
+    puntero.setFromCamera(coordenada, camara);
     
-    //con esto evitamos errores si el modelo no se ha cargado
     if (!grupoEdificios) return;
  
-    //revisa si apunta a uno de los edifcios
     const intersecciones = puntero.intersectObjects(grupoEdificios.children, true);
     if (intersecciones.length === 0) {
-        marcador.visible = false; //ocultamos marcador
-        menuNiveles.classList.add('oculto'); //ocultamos botones
+        marcador.visible = false; 
+        menuNiveles.classList.add('oculto'); 
         return;
     }
  
-    //en caso de que si, solo dame el primer objeto que detectaste
     const primer = intersecciones[0].object;
     const base = nombreBase(primer.name);
-    // solo reaccionamos si el nombre base esta en nuestra lista permitida
+    
     if (!edificios.includes(base)) {
         marcador.visible = false;
         menuNiveles.classList.add('oculto');
@@ -147,7 +155,7 @@ renderizador.domElement.addEventListener('click', (evento) => {
 
     console.log("Clic en:", base);
 
-    //identificamos dimensiones
+ //identificamos dimensiones
     const cajaEdificio = new THREE.Box3().setFromObject(primer);
     const centro = new THREE.Vector3();
     cajaEdificio.getCenter(centro); //se obtienen coordenadas centrales
@@ -170,6 +178,10 @@ renderizador.domElement.addEventListener('click', (evento) => {
     menuNiveles.classList.remove('oculto');
 });
 
+
+
+
+
 //cargamos el marcador (identificador)
 const cargar_textura = new THREE.TextureLoader();
 const textura = cargar_textura.load('assets/iconos/marcador.png'); 
@@ -186,7 +198,134 @@ marcador.visible = false; // se oculta al inicio
 
 escena.add(marcador);
 
-// animacion
+
+
+
+//botones planos y visor
+const btnLobby = document.getElementById('lobby');
+const btnPrimerNivel = document.getElementById('primer_nivel');
+const btnSegundoNivel = document.getElementById('segundo_nivel');
+const menuNiveles = document.getElementById('menu-niveles');
+
+const visorPlanos = document.getElementById('visor-planos');
+const contenedorSvg = document.getElementById('contenedor-svg');
+const btnCerrarPlano = document.getElementById('btn-cerrar-plano');
+let instanciaPanzoom = null; 
+
+
+
+
+// funcion para cargar los planos SVG
+function cargarPlano(rutaSVG) {
+    fetch(rutaSVG)
+        .then(respuesta => respuesta.text())
+        .then(svgData => {
+            contenedorSvg.innerHTML = svgData;
+            visorPlanos.classList.remove('oculto');
+
+            if (instanciaPanzoom) instanciaPanzoom.destroy(); 
+            instanciaPanzoom = Panzoom(contenedorSvg, {
+                maxScale: 5, 
+                minScale: 0.5,
+                canvas: true
+            });
+            
+            contenedorSvg.parentElement.addEventListener('wheel', instanciaPanzoom.zoomWithWheel);
+            activarIconosInteractivos();
+        })
+        .catch(error => console.error("Error cargando el plano:", error));
+}
+
+
+
+// traductor de nombres de edificios a prefijos de archivos SVG
+const traductorNombres = {
+    'Edificio_A': 'A',
+    'Edificio_B': 'B',
+    'Edificio_C': 'C',
+    'Edificio_D1': 'D1',
+    'Edificio_D2': 'D2',
+    'Edificio_D3': 'D3',
+    'Edificio_D4': 'D4',
+    'Nucleo': 'NUCLEO',
+    'Gimanasio_multifincional_UACJ_CU002': 'E' 
+};
+
+btnLobby.addEventListener('click', () => {
+    const edificioActual = menuNiveles.dataset.edificio; 
+    const prefijo = traductorNombres[edificioActual];
+    cargarPlano(`assets/planos/${prefijo}_LOBBY.svg`); 
+});
+
+btnPrimerNivel.addEventListener('click', () => {
+    const edificioActual = menuNiveles.dataset.edificio;
+    const prefijo = traductorNombres[edificioActual];
+    cargarPlano(`assets/planos/${prefijo}_PRIMER_NIVEL.svg`);
+});
+
+btnSegundoNivel.addEventListener('click', () => {
+    const edificioActual = menuNiveles.dataset.edificio;
+    const prefijo = traductorNombres[edificioActual];
+    cargarPlano(`assets/planos/${prefijo}_SEGUNDO_NIVEL.svg`);
+});
+
+// cerramos el visor de planos
+btnCerrarPlano.addEventListener('click', () => {
+    visorPlanos.classList.add('oculto');
+    setTimeout(() => { contenedorSvg.innerHTML = ''; }, 300); 
+});
+
+
+//base datos temporal para prueba
+const baseDatosLugares = {
+    "Cafeteria_A": {
+        titulo: "Salón A114",
+        descripcion: "Espacio de prueba seleccionado en el Edificio A.",
+        imagen: "assets/iconos/marcador.png" 
+    }
+};
+
+function activarIconosInteractivos() {
+    contenedorSvg.addEventListener('click', (evento) => {
+        const elementoConId = evento.target.closest('[id]');
+        
+        if (!elementoConId) return;
+
+        const idIcono = elementoConId.id;
+        const infoLugar = baseDatosLugares[idIcono];
+
+        if (!infoLugar) return;
+
+        evento.stopPropagation(); 
+        console.log("¡Clic detectado con éxito en el espacio:", idIcono, "!");
+
+        // cargamos la información en la ventana flotante
+        document.getElementById('ventana-titulo').textContent = infoLugar.titulo;
+        document.getElementById('ventana-descripcion').textContent = infoLugar.descripcion;
+        document.getElementById('ventana-imagen').src = infoLugar.imagen;
+
+        // mostramos la ventana
+        document.getElementById('ventana-info').style.display = 'flex';
+    });
+}
+
+
+
+// logica para cerrar la ventana info icono
+const ventanaInfo = document.getElementById('ventana-info');
+const btnCerrarVentana = document.getElementById('btn-cerrar-ventana');
+
+btnCerrarVentana.addEventListener('click', () => {
+    ventanaInfo.style.display = 'none';
+});
+
+ventanaInfo.addEventListener('click', (e) => {
+    if (e.target === ventanaInfo) {
+        ventanaInfo.style.display = 'none';
+    }
+});
+
+// animacion 3D
 function animar() {
     requestAnimationFrame(animar);
     controles.update();
